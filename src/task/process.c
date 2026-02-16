@@ -34,6 +34,12 @@ struct process* process_get(int process_id)
     return processes[process_id];
 }
 
+int process_switch(struct process* process)
+{
+    current_process = process;
+    return 0;
+}
+
 static int process_load_binary(const char* filename, struct process* process)
 {
     int res = 0;
@@ -90,6 +96,15 @@ int process_map_memory(struct process* process)
 {
     int res = 0;
     res = process_map_binary(process);
+
+    if (res < 0)
+    {
+        goto out;
+    }
+
+    paging_map_to(process->task->page_directory, (void*)PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack, paging_align_address(process->stack+PEACHOS_USER_PROGRAM_STACK_SIZE), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
+
+out:
     return res;
 }
 
@@ -116,6 +131,17 @@ int process_load(const char* filename, struct process** process)
 
     res = process_load_for_slot(filename, process, process_slot);
 out:
+    return res;
+}
+
+int process_load_switch(const char* filename, struct process** process)
+{
+    int res = process_load(filename, process);
+    if (res == 0)
+    {
+        process_switch(*process);
+    }
+
     return res;
 }
 

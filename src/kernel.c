@@ -5,7 +5,9 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "memory/memory.h"
+#include "keyboard/keyboard.h"
 #include "string/string.h"
+#include "isr80h/isr80h.h"
 #include "task/task.h"
 #include "task/process.h"
 #include "fs/file.h"
@@ -31,6 +33,24 @@ void terminal_putchar(int x, int y, char c, char colour)
     video_mem[(y * VGA_WIDTH) + x] = terminal_make_char(c, colour);
 }
 
+void terminal_backspace()
+{
+    if (terminal_row == 0 && terminal_col == 0)
+    {
+        return;
+    }
+
+    if (terminal_col == 0)
+    {
+        terminal_row -= 1;
+        terminal_col = VGA_WIDTH;
+    }
+
+    terminal_col -=1;
+    terminal_writechar(' ', 15);
+    terminal_col -=1;
+}
+
 void terminal_writechar(char c, char colour)
 {
     if (c == '\n')
@@ -40,8 +60,15 @@ void terminal_writechar(char c, char colour)
         return;
     }
 
+    if (c == 0x08)
+    {
+        terminal_backspace();
+        return;
+    }
+
     terminal_putchar(terminal_col, terminal_row, c, colour);
     terminal_col += 1;
+    
     if (terminal_col >= VGA_WIDTH)
     {
         terminal_col = 0;
@@ -80,6 +107,12 @@ void panic(const char *msg)
     while (1) {}
 }
 
+void kernel_page()
+{
+    kernel_registers();
+    paging_switch(kernel_chunk);
+}
+
 struct tss tss;
 struct gdt gdt_real[PEACHOS_TOTAL_GDT_SEGMENTS];
 struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
@@ -94,7 +127,7 @@ struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
 void kernel_main()
 {
     terminal_initialize();
-    print("Hello World from Peach OS!\n");
+    print("Initializing Peach OS!\n");
 
     // Setup the GDT
     memset(gdt_real, 0x00, sizeof(gdt_real));
@@ -143,6 +176,14 @@ void kernel_main()
     print("Enabling paging\n");
     enable_paging();
 
+    // Register the kernel commands
+    print("Registering the kernel commands\n");
+    isr80h_register_commands();
+
+    // Initialize all the system keyboards
+    print("Initializing all the system keyboards\n");
+    keyboard_init();
+
     // Enable the system interrupts
     /*print("Enabling the system interrupts\n");
     enable_interrupts();
@@ -161,7 +202,7 @@ void kernel_main()
     }*/
 
     struct process *process = 0;
-    int res = process_load("0:/blank.bin", &process);
+    int res = process_load_switch("0:/blank.bin", &process);
     if (res != PEACHOS_ALL_OK)
     {
         panic("Failed to load blank.bin\n");
