@@ -1,11 +1,11 @@
 #include "peachos.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 int main(int argc, char** argv)
 {
     print("Hello how are you!\n");
-    
-    print(itoa(8763));
+    printf("My age is %i\n", 98);    
 
     void* ptr = malloc(512);
     if (ptr)
@@ -15,13 +15,12 @@ int main(int argc, char** argv)
 
     free(ptr);
 
-    while(1) 
-    {
-        if (getkey() != 0)
-        {
-            print("key was pressed\n");
-        }
-    }
+    char buf[1024];
+    peachos_terminal_readline(buf, sizeof(buf), true);
+
+    print(buf);
+
+    while(1) {}
     
     return 0;
 }
