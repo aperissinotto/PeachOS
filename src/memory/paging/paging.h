@@ -11,10 +11,8 @@
 #define PAGING_IS_WRITEABLE    0b00000010
 #define PAGING_IS_PRESENT      0b00000001
 
-
 #define PAGING_TOTAL_ENTRIES_PER_TABLE 1024
 #define PAGING_PAGE_SIZE 4096
-
 
 struct paging_4gb_chunk
 {
@@ -35,5 +33,6 @@ int paging_map_range(struct paging_4gb_chunk* directory, void* virt, void* phys,
 int paging_map(struct paging_4gb_chunk* directory, void* virt, void* phys, int flags);
 void* paging_align_address(void* ptr);
 uint32_t paging_get(uint32_t* directory, void* virt);
+void* paging_align_to_lower_page(void* addr);
 
 #endif
