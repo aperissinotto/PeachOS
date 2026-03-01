@@ -2,7 +2,6 @@
 #include "peachos.h"
 #include "stdlib.h"
 #include <stdarg.h>
-
 int putchar(int c)
 {
     peachos_putchar((char)c);

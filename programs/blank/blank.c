@@ -1,26 +1,21 @@
 #include "peachos.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "string.h"
 
 int main(int argc, char** argv)
 {
-    print("Hello how are you!\n");
-    printf("My age is %i\n", 98);    
+    char words[] = "hello how are you";
 
-    void* ptr = malloc(512);
-    if (ptr)
+    const char* token = strtok(words, " ");
+    while(token)
     {
-        print("Malloc is OK!\n");    
+        printf("%s\n", token);
+        token = strtok(NULL, " ");
     }
 
-    free(ptr);
-
-    char buf[1024];
-    peachos_terminal_readline(buf, sizeof(buf), true);
-
-    print(buf);
-
-    while(1) {}
-    
+    while(1) 
+    {
+    }
     return 0;
 }

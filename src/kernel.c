@@ -127,85 +127,68 @@ struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
 void kernel_main()
 {
     terminal_initialize();
-    print("Initializing Peach OS!\n");
+    //print("Initializing Peach OS!\n");
 
     // Setup the GDT
     memset(gdt_real, 0x00, sizeof(gdt_real));
     gdt_structured_to_gdt(gdt_real, gdt_structured, PEACHOS_TOTAL_GDT_SEGMENTS);
-    print("Setting up the GDT\n");
+    //print("Setting up the GDT\n");
 
     // Load the gdt
     gdt_load(gdt_real, sizeof(gdt_real));
-    print("Loading the GDT\n");
+    //print("Loading the GDT\n");
 
     // Initialize the heap
-    print("Initializing the heap\n");
+    //print("Initializing the heap\n");
     kheap_init();
 
     // Initialize filesystems
-    print("Initializing filesystems\n");
+    //print("Initializing filesystems\n");
     fs_init();
 
     // Search and initialize the disks
-    print("Searching and initializing the disks\n");
+    //print("Searching and initializing the disks\n");
     disk_search_and_init();
 
     // Initialize the interrupt descriptor table
-    print("Initializing the interrupt descriptor table\n");
+    //print("Initializing the interrupt descriptor table\n");
     idt_init();
 
     // Setup the TSS
     memset(&tss, 0x00, sizeof(tss));
     tss.esp0 = 0x600000;
     tss.ss0 = KERNEL_DATA_SELECTOR;
-    print("Setting up the TSS\n");
+    //print("Setting up the TSS\n");
 
     // Load the TSS
     tss_load(0x28);
-    print("Loading up the TSS\n");
+    //print("Loading up the TSS\n");
 
     // Setup paging
-    print("Setuping paging\n");
+    //print("Setuping paging\n");
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
 
     // Switch to kernel paging chunk
-    print("Switching to kernel paging chunk\n");
+    //print("Switching to kernel paging chunk\n");
     paging_switch(kernel_chunk);
 
     // Enable paging
-    print("Enabling paging\n");
+    //print("Enabling paging\n");
     enable_paging();
 
     // Register the kernel commands
-    print("Registering the kernel commands\n");
+    //print("Registering the kernel commands\n");
     isr80h_register_commands();
 
     // Initialize all the system keyboards
-    print("Initializing all the system keyboards\n");
+    //print("Initializing all the system keyboards\n");
     keyboard_init();
 
-    // Enable the system interrupts
-    /*print("Enabling the system interrupts\n");
-    enable_interrupts();
-
-    int fd = fopen("0:/hello.txt", "r");
-    if (fd)
-    {
-        print("We opened hello.txt\n");
-        char buf[14];
-        fseek(fd, 2, SEEK_SET);
-        fread(buf, 11, 1, fd);
-        buf[13] = 0x00;
-        print(buf);
-        fclose(fd);
-        print("We closed hello.txt\n");
-    }*/
-
     struct process *process = 0;
-    int res = process_load_switch("0:/blank.elf", &process);
+    int res = process_load_switch("0:/shell.elf", &process);
     if (res != PEACHOS_ALL_OK)
     {
-        panic("Failed to load blank.elf\n");
+        panic("Failed to load shell.elf\n");
     }
 
     task_run_first_ever_task();
