@@ -5,17 +5,14 @@
 
 int main(int argc, char** argv)
 {
-    char words[] = "hello how are you";
-
-    const char* token = strtok(words, " ");
-    while(token)
+    while(1)
     {
-        printf("%s\n", token);
-        token = strtok(NULL, " ");
+        print(argv[0]);
+        for (int i = 0; i < 1000000; i++)
+        {
+            
+        }
     }
 
-    while(1) 
-    {
-    }
     return 0;
 }

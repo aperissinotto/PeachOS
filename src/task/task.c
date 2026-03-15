@@ -104,6 +104,18 @@ int task_free(struct task *task)
     return 0;
 }
 
+void task_next()
+{
+    struct task* next_task = task_get_next();
+    if (!next_task)
+    {
+        panic("No more tasks!\n");
+    }
+
+    task_switch(next_task);
+    task_return(&next_task->registers);
+}
+
 int task_switch(struct task *task)
 {
     current_task = task;
@@ -240,4 +252,9 @@ void *task_get_stack_item(struct task *task, int index)
     kernel_page();
 
     return result;
+}
+
+void* task_virtual_address_to_physical(struct task* task, void* virtual_address)
+{
+    return paging_get_physical_address(task->page_directory->directory_entry, virtual_address);
 }

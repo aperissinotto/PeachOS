@@ -127,61 +127,61 @@ struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
 void kernel_main()
 {
     terminal_initialize();
-    //print("Initializing Peach OS!\n");
+    print("Initializing Peach OS!\n");
 
     // Setup the GDT
+    print("Setting up the GDT\n");
     memset(gdt_real, 0x00, sizeof(gdt_real));
     gdt_structured_to_gdt(gdt_real, gdt_structured, PEACHOS_TOTAL_GDT_SEGMENTS);
-    //print("Setting up the GDT\n");
 
     // Load the gdt
-    gdt_load(gdt_real, sizeof(gdt_real));
-    //print("Loading the GDT\n");
+    print("Loading the GDT\n");
+    gdt_load(gdt_real, sizeof(gdt_real)-1);
 
     // Initialize the heap
-    //print("Initializing the heap\n");
+    print("Initializing the heap\n");
     kheap_init();
 
     // Initialize filesystems
-    //print("Initializing filesystems\n");
+    print("Initializing filesystems\n");
     fs_init();
 
     // Search and initialize the disks
-    //print("Searching and initializing the disks\n");
+    print("Searching and initializing the disks\n");
     disk_search_and_init();
 
     // Initialize the interrupt descriptor table
-    //print("Initializing the interrupt descriptor table\n");
+    print("Initializing the interrupt descriptor table\n");
     idt_init();
 
     // Setup the TSS
+    print("Setting up the TSS\n");
     memset(&tss, 0x00, sizeof(tss));
     tss.esp0 = 0x600000;
     tss.ss0 = KERNEL_DATA_SELECTOR;
-    //print("Setting up the TSS\n");
 
     // Load the TSS
+    print("Loading up the TSS\n");
     tss_load(0x28);
-    //print("Loading up the TSS\n");
-
+    
     // Setup paging
-    //print("Setuping paging\n");
+    print("Setuping paging\n");
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
 
     // Switch to kernel paging chunk
-    //print("Switching to kernel paging chunk\n");
+    print("Switching to kernel paging chunk\n");
     paging_switch(kernel_chunk);
 
     // Enable paging
-    //print("Enabling paging\n");
+    print("Enabling paging\n");
     enable_paging();
 
     // Register the kernel commands
-    //print("Registering the kernel commands\n");
+    print("Registering the kernel commands\n");
     isr80h_register_commands();
 
     // Initialize all the system keyboards
-    //print("Initializing all the system keyboards\n");
+    print("Initializing all the system keyboards\n");
     keyboard_init();
 
     struct process *process = 0;
@@ -190,6 +190,21 @@ void kernel_main()
     {
         panic("Failed to load shell.elf\n");
     }
+
+/*    struct command_argument argument;
+    strcpy(argument.argument, "Testing!");
+    argument.next = 0x00; 
+    process_inject_arguments(process, &argument);
+
+    res = process_load_switch("0:/blank.elf", &process);
+    if (res != PEACHOS_ALL_OK)
+    {
+        panic("Failed to load blank.elf\n");
+    }
+
+    strcpy(argument.argument, "Abc!");
+    argument.next = 0x00; 
+    process_inject_arguments(process, &argument);*/
 
     task_run_first_ever_task();
 
